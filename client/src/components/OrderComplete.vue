@@ -9,7 +9,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import axios from 'axios';
 
@@ -24,6 +23,7 @@ export default {
       const path = `http://localhost:5000/charge/${this.$route.params.id}`;
       axios.get(path)
         .then((res) => {
+          console.log(res.data)
           this.book = res.data.charge.description;
         })
         .catch((error) => {
@@ -36,4 +36,5 @@ export default {
     this.getChargeInfo();
   },
 };
+
 </script>

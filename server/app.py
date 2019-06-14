@@ -30,8 +30,11 @@ BOOKS = [
     }
 ]
 
+
+
 # configuration
 DEBUG = True
+STRIPE_API_KEY = 'sk_test_8STbXyoBcBqXhzGRFg3HTvMs002XKDq86y'
 
 # instantiate the app
 app = Flask(__name__)
@@ -81,6 +84,7 @@ def single_book(book_id):
         return_book = ''
         for book in BOOKS:
             if book['id'] == book_id:
+                print(book)
                 return_book = book
         response_object['book'] = return_book
     if request.method == 'PUT':
@@ -99,17 +103,19 @@ def single_book(book_id):
         response_object['message'] = 'Book removed!'
     return jsonify(response_object)
 
-
 @app.route('/charge', methods=['POST'])
 def create_charge():
     post_data = request.get_json()
     amount = round(float(post_data.get('book')['price']) * 100)
-    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+    # stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+    stripe.api_key = STRIPE_API_KEY
+    print(post_data)
     charge = stripe.Charge.create(
         amount=amount,
         currency='usd',
         card=post_data.get('token'),
-        description=post_data.get('book')['title']
+        description=post_data.get('book')['title'],
+        receipt_email=post_data.get('customer')['email']
     )
     response_object = {
         'status': 'success',
@@ -117,16 +123,15 @@ def create_charge():
     }
     return jsonify(response_object), 200
 
-
 @app.route('/charge/<charge_id>')
 def get_charge(charge_id):
-    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+    # stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+    stripe.api_key = STRIPE_API_KEY
     response_object = {
         'status': 'success',
         'charge': stripe.Charge.retrieve(charge_id)
     }
     return jsonify(response_object), 200
-
 
 if __name__ == '__main__':
     app.run()

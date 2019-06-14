@@ -13,8 +13,8 @@
             <div>
               <h4>You are buying:</h4>
               <ul>
-                <li>Book Title: <em>{{ book.title }}</em></li>
-                <li>Amount: <em>${{ book.price }}</em></li>
+                <li>Book Title: <em>{{book.title}}</em></li>
+                <li>Amount: <em>{{book.price}}</em></li>
               </ul>
             </div>
             <div>
@@ -29,6 +29,13 @@
           <div class="col-sm-6">
             <h3>One time payment</h3>
             <br>
+            <div class="form-group">
+              <input type="text"
+                     class="form-control"
+                     placeholder="Email"
+                     v-model="customer.email"
+                     required>
+            </div>
             <form>
               <div class="form-group">
                 <label>Credit Card Info</label>
@@ -53,11 +60,7 @@
                        v-model="card.exp"
                        required>
               </div>
-              <button class="btn btn-primary btn-block"
-                      @click.prevent="validate"
-                      :disabled="stripeCheck">
-                  Submit
-              </button>
+              <button class="btn btn-primary btn-block"  @click.prevent="validate" :disabled="stripeCheck">Submit</button>
             </form>
             <div v-show="errors">
               <br>
@@ -73,7 +76,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import axios from 'axios';
 
@@ -91,8 +93,11 @@ export default {
         cvc: '',
         exp: '',
       },
+      customer: {
+        email: '',
+      },
       errors: [],
-      stripePublishableKey: 'pk_test_aIh85FLcNlk7A6B26VZiNj1h',
+      stripePublishableKey: 'pk_test_eMILjGNs0CqwrzJO3mXQ2Mav00l9hCsl97',
       stripeCheck: false,
     };
   },
@@ -111,6 +116,10 @@ export default {
     validate() {
       this.errors = [];
       let valid = true;
+      if (!this.customer.email) {
+        valid = false;
+        this.errors.push('Email is required');
+      }
       if (!this.card.number) {
         valid = false;
         this.errors.push('Card Number is required');
@@ -128,6 +137,8 @@ export default {
       }
     },
     createToken() {
+      // eslint-disable-next-line
+      console.log('The form is valid!');
       this.stripeCheck = true;
       window.Stripe.setPublishableKey(this.stripePublishableKey);
       window.Stripe.createToken(this.card, (status, response) => {
@@ -140,11 +151,11 @@ export default {
           const payload = {
             book: this.book,
             token: response.id,
+            customer: this.customer,
           };
           const path = 'http://localhost:5000/charge';
           axios.post(path, payload)
             .then((res) => {
-              // updates
               this.$router.push({ path: `/complete/${res.data.charge.id}` });
             })
             .catch((error) => {
