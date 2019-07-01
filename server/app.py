@@ -106,7 +106,8 @@ def single_book(book_id):
 @app.route('/charge', methods=['POST'])
 def create_charge():
     post_data = request.get_json()
-    amount = round(float(post_data.get('book')['price']) * 100)
+    print(post_data)
+    amount = round(float(post_data.get('product')['price']) * 100)
     # stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
     stripe.api_key = STRIPE_API_KEY
     print(post_data)
@@ -114,7 +115,7 @@ def create_charge():
         amount=amount,
         currency='usd',
         card=post_data.get('token'),
-        description=post_data.get('book')['title'],
+        description=post_data.get('product')['name'],
         receipt_email=post_data.get('customer')['email']
     )
     response_object = {
